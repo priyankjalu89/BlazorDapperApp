@@ -1,0 +1,72 @@
+﻿@page "/employees"
+
+<h3>Employees</h3>
+
+@using BlazorDapperApp.Models
+
+@inject HttpClient Http
+
+<h4>Insert New Employee</h4>
+<EditForm Model="@newEmployee" OnValidSubmit="@InsertEmployee">
+    <DataAnnotationsValidator />
+    <ValidationSummary />
+
+    <InputText id="name" @bind-Value="newEmployee.Name" />
+    <InputNumber id="age" @bind-Value="newEmployee.Age" />
+    <InputText id="address" @bind-Value="newEmployee.Address" />
+    <InputText id="mobileNumber" @bind-Value="newEmployee.MobileNumber" />
+
+    <button type="submit" class="btn btn-primary">Submit</button>
+</EditForm>
+
+<h4>Current Employees</h4>
+@if ( employees == null )
+{
+    <p>
+        <em>Loading...</em>
+    </p>
+}
+else
+{
+    <table class="table">
+        <thead>
+            <tr>
+                <th>Id</th>
+                <th>Name</th>
+                <th>Age</th>
+                <th>Address</th>
+                <th>Mobile Number</th>
+            </tr>
+        </thead>
+        <tbody>
+            @foreach (var employee in employees)
+            {
+                <tr>
+                    <td>@employee.Id</td>
+                    <td>@employee.Name</td>
+                    <td>@employee.Age</td>
+                    <td>@employee.Address</td>
+                    <td>@employee.MobileNumber</td>
+                </tr>                
+            }
+        </tbody>
+    </table>
+}
+
+@code {
+    private List<Employee> employees;
+    private Employee newEmployee = new Employee();
+
+    protected override async Task OnInitializedAsync()
+    {
+        employees = await Http.GetFromJsonAsync<List<Employee>>("https://localhost:7156/api/employee");
+    }
+
+    private async Task InsertEmployee()
+    {
+        await Http.PostAsJsonAsync<Employee>("https://localhost:7156/api/employee", newEmployee);
+        employees = await Http.GetFromJsonAsync<List<Employee>>("https://localhost:7156/api/employee");
+
+        newEmployee = new Employee();
+    }
+}
